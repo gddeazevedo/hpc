@@ -33,12 +33,40 @@ void pro_gemm(double *C, double *A, double *B, double alpha, double beta, int n)
             double sum = 0.0;
 
             for (int k = 0; k < n; k++) {
-                sum += A[IDX(i, k, n)] * B[IDX(j, k, n)];
+                sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
             }
 
             C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
         }
     }
+
+    free(Bt);
+}
+
+void pro_gemm_parallel_simd(double *C, double *A, double *B, double alpha, double beta, int n) {
+    double *Bt = malloc(sizeof(double) * n * n);
+
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            Bt[IDX(i, j, n)] = B[IDX(j, i, n)];
+        }
+    }
+
+    #pragma omp parallel for
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0;
+
+            #pragma omp simd reduction(+:sum)
+            for (int k = 0; k < n; k++) {
+                sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
+            }
+
+            C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
+        }
+    }
+
+    free(Bt);
 }
 
 void pro_gemm_parallel(double *C, double *A, double *B, double alpha, double beta, int n) {
@@ -56,12 +84,14 @@ void pro_gemm_parallel(double *C, double *A, double *B, double alpha, double bet
             double sum = 0.0;
 
             for (int k = 0; k < n; k++) {
-                sum += A[IDX(i, k, n)] * B[IDX(j, k, n)];
+                sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
             }
 
             C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
         }
     }
+
+    free(Bt);
 }
 
 void print_matrix(double *M, int n) {
@@ -76,6 +106,7 @@ void print_matrix(double *M, int n) {
 
 int main(int argc, char **argv) {
     if (argc != 2) {
+        printf("Usage: %s <matrix_size>\n", argv[0]);
         return 1;
     }
 
@@ -97,8 +128,9 @@ int main(int argc, char **argv) {
     // print_matrix(B, n);
     // print_matrix(C, n);
 
-    naive_gemm(C, A, B, 1.0, 1.0, n);
+    // naive_gemm(C, A, B, 1.0, 1.0, n);
     // pro_gemm(C, A, B, 1.0, 1.0, n);
+    pro_gemm_parallel_simd(C, A, B, 1.0, 1.0, n);
     // pro_gemm_parallel(C, A, B, 1.0, 1.0, n);
 
 
