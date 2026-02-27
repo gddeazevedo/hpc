@@ -14,7 +14,7 @@ void naive_gemm(double *C, double *A, double *B, double alpha, double beta, int 
                 sum += A[IDX(i, k, n)] * B[IDX(k, j, n)];
             }
 
-            C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
+            C[IDX(i, j, n)] = alpha * sum + beta * C[IDX(i, j, n)];
         }
     }
 }
@@ -36,7 +36,7 @@ void pro_gemm(double *C, double *A, double *B, double alpha, double beta, int n)
                 sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
             }
 
-            C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
+            C[IDX(i, j, n)] = alpha * sum + beta * C[IDX(i, j, n)];
         }
     }
 
@@ -62,7 +62,7 @@ void pro_gemm_parallel_simd(double *C, double *A, double *B, double alpha, doubl
                 sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
             }
 
-            C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
+            C[IDX(i, j, n)] = alpha * sum + beta * C[IDX(i, j, n)];
         }
     }
 
@@ -87,7 +87,7 @@ void pro_gemm_parallel(double *C, double *A, double *B, double alpha, double bet
                 sum += A[IDX(i, k, n)] * Bt[IDX(j, k, n)];
             }
 
-            C[IDX(i, j, n)] = alpha * sum + C[IDX(i, j, n)];
+            C[IDX(i, j, n)] = alpha * sum + beta * C[IDX(i, j, n)];
         }
     }
 
