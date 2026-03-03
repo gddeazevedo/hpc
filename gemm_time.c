@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#define IDX(i, j) i*n + j
+#define IDX(i, j) i * n + j
+#define BS 64
 
 typedef void (*gemm_func_t)(double *C, const double *A, const double *B, const double alpha, const double beta, const uint32_t n);
 
@@ -11,6 +12,16 @@ static inline double wtime() {
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
     return t.tv_sec + 1e-9 * t.tv_nsec;
+}
+
+void print_matrix(double *M, int n) {
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            printf("%.2lf ", M[IDX(i, j)]);
+        }
+        printf("\n");
+    }
+    printf("\n");
 }
 
 double *tranpose(const double *M, const uint32_t n) {
@@ -115,6 +126,36 @@ void pro_gemm_parallel_simd(double *C, const double *A, const double *B, const d
     free(Bt);
 }
 
+void pro_gemm_tiles(double *C, const double *A, const double *B, const double alpha, const double beta, const uint32_t n) {
+    double *Bt = tranpose(B, n);
+
+    for (uint32_t i = 0; i < n * n; i++) {
+        C[i] = beta * C[i];
+    }
+
+    for (uint32_t i = 0; i < n; i += BS) {
+        for (uint32_t j = 0; j < n; j += BS) {
+            for (uint32_t k = 0; k < n; k += BS) {
+
+                for (uint32_t ii = i; ii < i + BS && ii < n; ii++) {
+                    for (uint32_t jj = j; jj < j + BS && jj < n; jj++) {
+
+                        double sum = 0.0;
+
+                        for (uint32_t kk = k; kk < k + BS && kk < n; kk++) {
+                            sum += A[IDX(ii, kk)] * Bt[IDX(jj, kk)];
+                        }
+
+                        C[IDX(ii, jj)] += alpha * sum;
+                    }
+                }
+            }
+        }
+    }
+
+    free(Bt);
+}
+
 void run_gemm_benchmark(uint32_t n, gemm_func_t gemm, char *label) {
     double *A = malloc(n * n * sizeof(double));
     double *B = malloc(n * n * sizeof(double));
@@ -129,8 +170,11 @@ void run_gemm_benchmark(uint32_t n, gemm_func_t gemm, char *label) {
     }
 
     double start = wtime();
-    gemm(C, A, B, 1.0, 1.0, n);
+    gemm(C, A, B, 2.0, 2.0, n);
     double end = wtime();
+
+    // print_matrix(C, n);
+
     printf("%s: %lf seconds\n", label, end - start);
 
     free(A);
@@ -151,6 +195,7 @@ int main(int argc, char **argv) {
     run_gemm_benchmark(n, pro_gemm_parallel, "Pro GEMM Parallel");
     run_gemm_benchmark(n, pro_gemm_simd, "Pro GEMM SIMD");
     run_gemm_benchmark(n, pro_gemm_parallel_simd, "Pro GEMM Parallel SIMD");
+    run_gemm_benchmark(n, pro_gemm_tiles, "Pro GEMM Tiles");
 
     return 0;
 }
