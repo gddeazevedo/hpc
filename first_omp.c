@@ -5,28 +5,33 @@
 
 
 int main() {
-    printf("SEQUENCIAL\n");
 
-    omp_set_num_threads(10);
+    int total = 0;
 
-    printf("Qtd threads: %d\n", omp_get_num_threads());
+    auto t0 = omp_get_wtime();
 
-    int x = 10;
-    #pragma omp parallel private(x)
-    {
-        int tid = omp_get_thread_num();
-        int n_threads = omp_get_num_threads();
-        
-        // if (tid == 0) {
-        //     sleep(10);
-        // }
-        
-        printf("PARALLEL %d / %d\n", tid, n_threads - 1);
-        printf("TID: %d, X: %d\n", tid, x);
+    //#pragma omp parallel for num_threads(20) reduction(+:total)
+    for (int i = 0; i < 6000; i++) {
+        total++;
     }
 
-    printf("x = %d\n", x);
-    printf("END\n");
+    auto t1 = omp_get_wtime();
+
+    printf("Total: %d\n", total);
+    printf("Time (Sequential): %f seconds\n", t1 - t0);
+
+    total = 0;
+    t0 = omp_get_wtime();
+
+    #pragma omp parallel for num_threads(20) reduction(+:total)
+    for (int i = 0; i < 6000; i++) {
+        total++;
+    }
+
+    t1 = omp_get_wtime();
+
+    printf("Total: %d\n", total);
+    printf("Time (Parallel): %f seconds\n", t1 - t0);
 
     return 0;
 }
