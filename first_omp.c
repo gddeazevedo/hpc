@@ -6,32 +6,13 @@
 
 int main() {
 
-    int total = 0;
+    int N = 10;
 
-    auto t0 = omp_get_wtime();
-
-    //#pragma omp parallel for num_threads(20) reduction(+:total)
-    for (int i = 0; i < 6000; i++) {
-        total++;
+    #pragma omp parallel for num_threads(2)
+    for (int i = N - 1; i >= 0; i--) {
+        int tid = omp_get_thread_num();
+        printf("Thread %d: i = %d\n", tid, i);
     }
-
-    auto t1 = omp_get_wtime();
-
-    printf("Total: %d\n", total);
-    printf("Time (Sequential): %f seconds\n", t1 - t0);
-
-    total = 0;
-    t0 = omp_get_wtime();
-
-    #pragma omp parallel for num_threads(20) reduction(+:total)
-    for (int i = 0; i < 6000; i++) {
-        total++;
-    }
-
-    t1 = omp_get_wtime();
-
-    printf("Total: %d\n", total);
-    printf("Time (Parallel): %f seconds\n", t1 - t0);
 
     return 0;
 }
