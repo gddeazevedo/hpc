@@ -51,19 +51,6 @@ double *solve_sup(const double *A, const double *b, const int n) {
     return x;
 }
 
-void print_vector(const double *v, int n) {
-    printf("[");
-    for (int i = 0; i < n; i++) {
-        if (i < n - 1) {
-            printf("%.2f, ", v[i]);
-        } else {
-            printf("%.2f ", v[i]);
-        }
-    }
-    printf("]\n");
-}
-
-
 double *solve_sup_parallel(const double *A, const double *b, const int n) {
     double *x = (double *) malloc(sizeof(double) * n);
 
@@ -79,6 +66,18 @@ double *solve_sup_parallel(const double *A, const double *b, const int n) {
     }
 
     return x;
+}
+
+void print_vector(const double *v, int n) {
+    printf("[");
+    for (int i = 0; i < n; i++) {
+        if (i < n - 1) {
+            printf("%.2f, ", v[i]);
+        } else {
+            printf("%.2f ", v[i]);
+        }
+    }
+    printf("]\n");
 }
 
 int main(int argc, char *argv[]) {
