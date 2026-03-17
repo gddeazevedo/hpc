@@ -24,7 +24,7 @@ void hist_parallel(uint8_t *txt, uint32_t h[CHARS], uint64_t size) {
         uint8_t local_h[CHARS];
 
         for (uint64_t i = 0; i < CHARS; i++) {
-            h[i] = 0;
+            local_h[i] = 0; // private para cada thread
         }
 
         #pragma omp for
