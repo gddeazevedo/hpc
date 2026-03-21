@@ -2,17 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <omp.h>
 
 #define IDX(i, j) i * n + j
 #define BS 64
 
 typedef void (*gemm_func_t)(double *C, const double *A, const double *B, const double alpha, const double beta, const uint32_t n);
 
-static inline double wtime() {
-    struct timespec t;
-    clock_gettime(CLOCK_MONOTONIC, &t);
-    return t.tv_sec + 1e-9 * t.tv_nsec;
-}
 
 void print_matrix(double *M, int n) {
     for (int i = 0; i < n; i++) {
@@ -219,9 +215,9 @@ void run_gemm_benchmark(uint32_t n, gemm_func_t gemm, char *label) {
 
     gemm(C, A, B, 2.0, 2.0, n); // cache warmup
 
-    double start = wtime();
+    double start = omp_get_wtime();
     gemm(C, A, B, 2.0, 2.0, n);
-    double end = wtime();
+    double end = omp_get_wtime();
 
     // print_matrix(C, n);
 
