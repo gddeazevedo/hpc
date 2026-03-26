@@ -9,4 +9,4 @@ compile:
 	gcc $(file) -fopenmp -O3 -o $(OUTPUT)
 
 run:
-	./$(OUTPUT) $(RUN_ARGS)
+	@./$(OUTPUT) $(RUN_ARGS)

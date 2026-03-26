@@ -50,6 +50,9 @@ void merge_sort_parallel(int *arr, int left, int right) {
     if (left < right) {
         int mid = (left + right) / 2;
 
+        // Por conta da baixa granularidade, não compensa delegar threads, melhor fazer sequencial
+        // como serão poucos dados para processar, não terá overhead de gerenciamento de tasks para as threads
+        // sendo mais rapido para poucos dados
         if (right - left < INTERVAL_SIZE_LIMIT) {
             merge_sort(arr, left, mid);
             merge_sort(arr, mid + 1, right);
@@ -98,16 +101,10 @@ void quick_sort(int *arr, int low, int high) {
 void quick_sort_parallel(int *arr, int low, int high) {
     if (low < high) {
         int pi = partition(arr, low, high);
-
-        if (high - low < INTERVAL_SIZE_LIMIT) {
-            quick_sort_parallel(arr, low, pi - 1);
-            quick_sort_parallel(arr, pi + 1, high);
-        } else {
-            #pragma omp task
-            quick_sort_parallel(arr, low, pi - 1);
-            #pragma omp task
-            quick_sort_parallel(arr, pi + 1, high);
-        }
+        #pragma omp task
+        quick_sort_parallel(arr, low, pi - 1);
+        #pragma omp task
+        quick_sort_parallel(arr, pi + 1, high);
     }
 }
 
