@@ -5,8 +5,7 @@
 int *gen_array(int n) {
     int *v = (int *) malloc(sizeof(int) * n);
     for (int i = 0; i < n; i++) {
-        // v[i] = 2 * (i + 1);
-        v[i] = 1;
+        v[i] = 2 * (i + 1);
     }
     return v;
 }
@@ -59,12 +58,13 @@ void prefix_sum_parallel(int *v, int n) {
         {
             buffer[0] = v[chunk_size - 1];
             for (int i = 1; i < buffer_size; i++) {
-                buffer[i] = buffer[i - 1] + v[i * chunk_size - 1];
+                buffer[i] = buffer[i - 1] + v[(i + 1) * chunk_size - 1];
             }
         }
+        // tem barrier implicita após o bloco single, a menos que nowait seja usado
 
         // o buffer tem que estar pronto para que as threads possam prosseguir
-        #pragma omp barrier
+        // #pragma omp barrier
 
         if (tid != 0) {
             for (int i = start - 1; i <= end; i++) {
