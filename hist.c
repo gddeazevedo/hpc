@@ -4,44 +4,60 @@
 #include <time.h>
 #include <omp.h>
 
-#define CHARS 256
+#define NUM_CHARS 256
 #define MAX_SIZE 10000
 
-void hist(uint8_t *txt, uint32_t h[CHARS], uint64_t size) {
-    for (uint64_t i = 0; i < CHARS; i++) {
+void hist(unsigned char *txt, unsigned int h[NUM_CHARS], unsigned long txt_size) {
+    for (int i = 0; i < NUM_CHARS; i++) {
         h[i] = 0;
     }
 
-    for (uint64_t i = 0; i < size; i++) {
-        uint32_t idx = (uint32_t) txt[i];
-        h[idx] += 1;
+    for (long i = 0; i < txt_size; i++) {
+        unsigned int character = (unsigned int) txt[i];
+        h[character] += 1;
     }
 }
 
-void hist_parallel(uint8_t *txt, uint32_t h[CHARS], uint64_t size) {
+void hist_parallel_v1(unsigned char *txt, unsigned int h[NUM_CHARS], unsigned long txt_size) {
+    for (int i = 0; i < NUM_CHARS; i++) {
+        h[i] = 0;
+    }
+
+    #pragma omp parallel for
+    for (long i = 0; i < txt_size; i++) {
+        unsigned int character = (unsigned int) txt[i];
+        #pragma omp atomic
+        h[character] += 1;
+    }
+}
+
+void hist_parallel_v2(unsigned char *txt, unsigned int h[NUM_CHARS], unsigned long txt_size) {
+    for (int i = 0; i < NUM_CHARS; i++) {
+        h[i] = 0;
+    }
+
     #pragma omp parallel
     {
-        uint8_t local_h[CHARS];
+        unsigned int local_h[NUM_CHARS];
 
-        for (uint64_t i = 0; i < CHARS; i++) {
-            local_h[i] = 0; // private para cada thread
+        for (int i = 0; i < NUM_CHARS; i++) {
+            local_h[i] = 0;
         }
 
         #pragma omp for
-        for (uint64_t i = 0; i < size; i++) {
-            uint32_t idx = (uint32_t) txt[i];
-            local_h[idx] += 1;
+        for (long i = 0; i < txt_size; i++) {
+            unsigned int character = (unsigned int) txt[i];
+            local_h[character] += 1;
         }
 
-        // somente uma thread pode acessar a região crítica por vez
         #pragma omp critical
-        for (uint64_t i = 0; i < CHARS; i++) {
+        for (int i = 0; i < NUM_CHARS; i++) {
             h[i] += local_h[i];
         }
     }
 }
 
-uint32_t randint(int32_t min, int32_t max) {
+unsigned int randint(int min, int max) {
     return rand() % (max - min + 1) + min;
 }
 
@@ -53,27 +69,33 @@ int main(int argc, char **argv) {
 
     srand(time(NULL));
 
-    uint64_t n = atol(argv[1]);
+    unsigned long txt_size = atol(argv[1]);
 
-    uint8_t *txt = (uint8_t *) malloc(n);
+    unsigned char *txt = (unsigned char*) malloc(txt_size);
 
-    for (uint64_t i = 0; i < n; i++) {
-        txt[i] = (uint8_t) randint(0, CHARS - 1);
+    for (long i = 0; i < txt_size; i++) {
+        txt[i] = (unsigned char) randint(0, NUM_CHARS - 1);
     }
 
-    uint32_t h[CHARS];
+    unsigned int h[NUM_CHARS];
 
     double t0 = omp_get_wtime();
-    hist(txt, h, n);
+    hist(txt, h, txt_size);
     double t1 = omp_get_wtime();
 
     printf("Sequential Time: %f\n", t1 - t0);
 
     t0 = omp_get_wtime();
-    hist_parallel(txt, h, n);
+    hist_parallel_v1(txt, h, txt_size);
     t1 = omp_get_wtime();
 
-    printf("Parallel Time: %f\n", t1 - t0);
+    printf("Parallel Time (Atomic): %f\n", t1 - t0);
+
+    t0 = omp_get_wtime();
+    hist_parallel_v2(txt, h, txt_size);
+    t1 = omp_get_wtime();
+
+    printf("Parallel Time (Scatter & Gather): %f\n", t1 - t0);
 
     free(txt);
 
