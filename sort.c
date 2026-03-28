@@ -2,6 +2,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#ifdef _WIN32
+    #include <windows.h>
+#else
+    #include <linux/time.h>
+#endif
 
 #define INTERVAL_SIZE_LIMIT 100000
 
@@ -54,13 +59,13 @@ void merge_sort_parallel(int *arr, int left, int right) {
         // como serão poucos dados para processar, não terá overhead de gerenciamento de tasks para as threads
         // sendo mais rapido para poucos dados
         if (right - left < INTERVAL_SIZE_LIMIT) {
-            merge_sort(arr, left, mid);
-            merge_sort(arr, mid + 1, right);
+            merge_sort_parallel(arr, left, mid);
+            merge_sort_parallel(arr, mid + 1, right);
         } else {
             #pragma omp task
-            merge_sort(arr, left, mid);
+            merge_sort_parallel(arr, left, mid);
             #pragma omp task
-            merge_sort(arr, mid + 1, right);
+            merge_sort_parallel(arr, mid + 1, right);
         }
 
         #pragma omp taskwait
@@ -110,9 +115,16 @@ void quick_sort_parallel(int *arr, int low, int high) {
 
 
 double get_time() {
+#ifdef _WIN32
+    LARGE_INTEGER freq, counter;
+    QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&counter);
+    return (double)counter.QuadPart / (double)freq.QuadPart;
+#else
     struct timespec t;
     clock_gettime(CLOCK_MONOTONIC, &t);
     return t.tv_sec + t.tv_nsec * 1e-9;
+#endif
 }
 
 void fill_random(int *arr, int n) {
@@ -155,49 +167,47 @@ int main(int argc, char *argv[]) {
     memcpy(arr3, base, n * sizeof(int));
     memcpy(arr4, base, n * sizeof(int));
 
+    free(base);
+
     printf("Tamanho: %d\n", n);
 
-    // -------- Quick Sort --------
-    double t3 = get_time();
-    quick_sort(arr2, 0, n - 1);
-    double t4 = get_time();
-    is_sorted(arr2, n);
-    printf("Quick Sort: %.6f s\n", t4 - t3);
 
-    double t5 = get_time();
+    double t_ini;
+    double t_fim;
+
+    // -------- Quick Sort --------
+    t_ini = get_time();
+    quick_sort(arr1, 0, n - 1);
+    t_fim = get_time();
+    is_sorted(arr1, n);
+    printf("Quick Sort: %.6f s\n", t_fim - t_ini);
+    free(arr1);
+
+    t_ini = get_time();
     #pragma omp parallel
     #pragma omp single
-    quick_sort_parallel(arr3, 0, n - 1);
+    quick_sort_parallel(arr2, 0, n - 1);
+    t_fim = get_time();
+    is_sorted(arr2, n);
+    printf("Quick Sort Parallel: %.6f s\n", t_fim - t_ini);
+    free(arr2);
 
-    double t6 = get_time();
-    is_sorted(arr3, n);
-    printf("Quick Sort Parallel: %.6f s\n", t6 - t5);
-
-    
     // -------- Merge Sort --------
-    double t1 = get_time();
-    merge_sort(arr1, 0, n - 1);
-    double t2 = get_time();
-    is_sorted(arr1, n);
-    printf("Merge Sort: %.6f s\n", t2 - t1);
+    t_ini = get_time();
+    merge_sort(arr3, 0, n - 1);
+    t_fim = get_time();
+    is_sorted(arr3, n);
+    printf("Merge Sort: %.6f s\n", t_fim - t_ini);
+    free(arr3);
 
-    double t7 = get_time();
+    t_ini = get_time();
     #pragma omp parallel
     #pragma omp single
     merge_sort_parallel(arr4, 0, n - 1);
-    double t8 = get_time();
+    t_fim = get_time();
     is_sorted(arr4, n);
-    printf("Merge Sort Parallel: %.6f s\n", t8 - t7);
-
-    /*
-    for( int i = 0; i < n; i++ ) {
-        printf("%d\n", arr2[i] );
-    }*/
-
-
-    free(base);
-    free(arr1);
-    free(arr2);
+    printf("Merge Sort Parallel: %.6f s\n", t_fim - t_ini);
+    free(arr4);
 
     return 0;
 }
