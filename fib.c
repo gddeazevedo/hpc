@@ -24,6 +24,7 @@ int fib_parallel(int n) {
     j = fib_parallel(n - 2);
 
     #pragma omp taskwait
+
     return i + j;
 }
 
