@@ -91,6 +91,8 @@ int main(int argc, char **argv) {
     double *A = (double *) malloc(sizeof(double) * n * n);
     double *B = (double *) malloc(sizeof(double) * n * n);
 
+    initialize(A, n);
+
     double t_start;
     double t_end;
 
@@ -100,27 +102,30 @@ int main(int argc, char **argv) {
     printf("Sequential: %fs\n", t_end - t_start);
 
     initialize(A, n);
-    initialize(A, n);
-
-    t_start = omp_get_wtime();
-    compute_stencil_parallel_red_black_ordering_v1(A, n);
-    t_end = omp_get_wtime();
-    printf("Parallel (Red-Black Ordering): %fs\n", t_end - t_start);
-
-
-    t_start = omp_get_wtime();
-    compute_stencil_parallel_red_black_ordering_v2(A, n);
-    t_end = omp_get_wtime();
-    printf("Parallel (Red-Black Ordering): %fs\n", t_end - t_start);
-
 
     t_start = omp_get_wtime();
     compute_stencil_parallel_buffer(A, B, n);
     t_end = omp_get_wtime();
     printf("Parallel (Buffer): %fs\n", t_end - t_start);
+    
+    free(B);
+    initialize(A, n);
+
+    t_start = omp_get_wtime();
+    compute_stencil_parallel_red_black_ordering_v1(A, n);
+    t_end = omp_get_wtime();
+    printf("Parallel (Red-Black Ordering V1): %fs\n", t_end - t_start);
+
+
+    initialize(A, n);
+
+    t_start = omp_get_wtime();
+    compute_stencil_parallel_red_black_ordering_v2(A, n);
+    t_end = omp_get_wtime();
+    printf("Parallel (Red-Black Ordering V2): %fs\n", t_end - t_start);
+
 
     free(A);
-    free(B);
 
     return 0;
 }
