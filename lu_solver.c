@@ -9,7 +9,11 @@ typedef struct {
     double *U;
 } lu_decomp_matrices;
 
-double *transpose(const double *M, const uint32_t n) {
+double randr(double a, double b) {
+    return ((rand() % 10000000) / 10000000.)*(b-a)+a;
+}
+
+double *transpose(const double *M, const int n) {
     double *Mt = malloc(sizeof(double) * n * n);
 
     #pragma omp parallel for
@@ -33,7 +37,7 @@ double *solve_sup(const double *A, const double *b, const int n) {
             sum += A[IDX(i, j)] * x[j];
         }
 
-        x[i] = (b[i] - sum) / M(i, i);
+        x[i] = (b[i] - sum) / A[IDX(i, i)];
     }
 
     return x;
@@ -111,6 +115,27 @@ double *lu_solver(const double *A, const double *b, int n) {
     return x;
 }
 
-int main() {
+int main(int argc, char **argv) {
+    int n = atoi(argv[1]);
+    double t_start, t_end;
+
+    double *A = (double *) malloc(sizeof(double) * n * n);
+    double *b = (double *) malloc(sizeof(double) * n);
+
+    for (int i = 0; i < n; i++) {
+        b[i] = randr(0.0, 1.0);
+
+        for (int j = 0; j < n; j++) {
+            A[IDX(i, j)] = randr(0.0, 1.0);
+        }
+    }
+
+
+    t_start = omp_get_wtime();
+    double *x = lu_solver(A, b, n);
+    t_end = omp_get_wtime();
+
+    printf("Time: %f\n", t_end - t_start);
+
     return 0;
 }
