@@ -130,10 +130,12 @@ int main(int argc, char **argv) {
         }
     }
 
-
     t_start = omp_get_wtime();
     double *x = lu_solver(A, b, n);
     t_end = omp_get_wtime();
+
+    free(A);
+    free(b);
 
     printf("Time: %f\n", t_end - t_start);
 
