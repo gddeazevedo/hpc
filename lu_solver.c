@@ -7,7 +7,7 @@
 typedef struct {
     double *L;
     double *U;
-} lu_decomp_matrices;
+} lu_decomp_matrices_t;
 
 double randr(double a, double b) {
     return ((rand() % 10000000) / 10000000.)*(b-a)+a;
@@ -60,7 +60,7 @@ double *solve_inf(const double *A, const double *b, const int n) {
     return x;
 }
 
-lu_decomp_matrices *lu_decomp(const double *A, int n) {
+lu_decomp_matrices_t *lu_decomp(const double *A, int n) {
     double *L  = (double *) calloc(n * n, sizeof(double));
     double *Ut = (double *) calloc(n * n, sizeof(double));
 
@@ -90,7 +90,7 @@ lu_decomp_matrices *lu_decomp(const double *A, int n) {
         }
     }
 
-    lu_decomp_matrices *matrices = (lu_decomp_matrices *) malloc(sizeof(lu_decomp_matrices));
+    lu_decomp_matrices_t *matrices = (lu_decomp_matrices_t *) malloc(sizeof(lu_decomp_matrices_t));
     matrices->L = L;
     matrices->U = transpose(Ut, n);
     free(Ut);
@@ -99,7 +99,7 @@ lu_decomp_matrices *lu_decomp(const double *A, int n) {
 }
 
 double *lu_solver(const double *A, const double *b, int n) {
-    lu_decomp_matrices *matrices = lu_decomp(A, n);
+    lu_decomp_matrices_t *matrices = lu_decomp(A, n);
     double *L = matrices->L;
     double *U = matrices->U;
 
@@ -130,14 +130,14 @@ int main(int argc, char **argv) {
         }
     }
 
-    t_start = omp_get_wtime();
+    // t_start = omp_get_wtime();
     double *x = lu_solver(A, b, n);
-    t_end = omp_get_wtime();
+    // t_end = omp_get_wtime();
 
     free(A);
     free(b);
 
-    printf("Time: %f\n", t_end - t_start);
+    // printf("Time: %f\n", t_end - t_start);
 
     return 0;
 }
