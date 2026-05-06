@@ -9,7 +9,7 @@ compile:
 	gcc ./openmp/$(file) -fopenmp -O3 -o $(OUTPUT)
 
 compile-mpi:
-	mpicc ./mpi/$(file) -fopenmp -O3 -o $(OUTPUT)
+	mpicc partition.h ./mpi/$(file) -fopenmp -O3 -o $(OUTPUT)
 
 run:
 	@./$(OUTPUT) $(RUN_ARGS)
