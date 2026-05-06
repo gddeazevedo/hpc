@@ -4,7 +4,7 @@
 
 
 void vec_sum(double *r, const double *v, const double *w, const Partition &p) {
-    for (int i = 0; i <= p.get_chunk_size(); i++) {
+    for (int i = 0; i < p.get_chunk_size(); i++) {
         r[i] = v[i] + w[i];
     }
 }
