@@ -6,10 +6,10 @@ RUN_ARGS := $(filter-out run, $(MAKECMDGOALS))
 	@:
 
 compile:
-	gcc $(file) -fopenmp -O3 -o $(OUTPUT)
+	gcc ./openmp/$(file) -fopenmp -O3 -o $(OUTPUT)
 
 compile-mpi:
-	mpicc $(file) -fopenmp -O3 -o $(OUTPUT)
+	mpicc ./mpi/$(file) -fopenmp -O3 -o $(OUTPUT)
 
 run:
 	@./$(OUTPUT) $(RUN_ARGS)
