@@ -3,37 +3,37 @@
 class Partition 
 {
     private:
-        const int n;       // total size of the data
+        const int total_size;       // total size of the data
         const int n_procs; // number of processes
         const int rank;    // process id [0, n_procs-1]
 
     public:
-        Partition(int n, int n_procs, int rank) : n(n), n_procs(n_procs), rank(rank) {}
+        Partition(int total_size, int n_procs, int rank) : total_size(total_size), n_procs(n_procs), rank(rank) {}
 
         /**
          * Get the starting index of the partition for the current process
          */
         int get_start() const {
-            if (rank < n % n_procs) {
-                int chunk = n / n_procs + 1;
+            if (rank < total_size % n_procs) {
+                int chunk = total_size / n_procs + 1;
                 return rank * chunk;
             }
 
-            int n_procs_unb = n % n_procs; // number of processes that get an extra element
-            int chunk_unb   = n / n_procs + 1;
-            int chunk       = n / n_procs; // chunk size for processes that do not get an extra element
+            int n_procs_unb = total_size % n_procs; // number of processes that get an extra element
+            int chunk_unb   = total_size / n_procs + 1;
+            int chunk       = total_size / n_procs; // chunk size for processes that do not get an extra element
             return n_procs_unb * chunk_unb + (rank - n_procs_unb) * chunk;
         }
 
         int get_start(int proc) const {
-            if (proc < n % n_procs) {
-                int chunk = n / n_procs + 1;
+            if (proc < total_size % n_procs) {
+                int chunk = total_size / n_procs + 1;
                 return proc * chunk;
             }
 
-            int n_procs_unb = n % n_procs; // number of processes that get an extra element
-            int chunk_unb   = n / n_procs + 1;
-            int chunk       = n / n_procs; // chunk size for processes that do not get an extra element
+            int n_procs_unb = total_size % n_procs; // number of processes that get an extra element
+            int chunk_unb   = total_size / n_procs + 1;
+            int chunk       = total_size / n_procs; // chunk size for processes that do not get an extra element
             return n_procs_unb * chunk_unb + (proc - n_procs_unb) * chunk;
         }
 
@@ -51,23 +51,23 @@ class Partition
         }
 
         int get_chunk_size() const {
-            if (rank < n % n_procs) { // processes with rank < n % n_procs get an extra element
-                return n / n_procs + 1;
+            if (rank < total_size % n_procs) { // processes with rank < total_size % n_procs get an extra element
+                return total_size / n_procs + 1;
             }
 
-            return n / n_procs;
+            return total_size / n_procs;
         }
 
         int get_chunk_size(int proc) const {
-            if (proc < n % n_procs) { // processes with rank < n % n_procs get an extra element
-                return n / n_procs + 1;
+            if (proc < total_size % n_procs) { // processes with rank < total_size % n_procs get an extra element
+                return total_size / n_procs + 1;
             }
 
-            return n / n_procs;
+            return total_size / n_procs;
         }
 
-        int get_n() const {
-            return n;
+        int get_total_size() const {
+            return total_size;
         }
 
         int *get_chunks_sizes() const {
