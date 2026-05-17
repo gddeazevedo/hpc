@@ -41,16 +41,16 @@ int main(int argc, char **argv) {
         }
     }
 
-    int *sendcounts    = p.get_chunks_sizes();
-    int *displacements = p.get_chunks_starts();
+    std::unique_ptr<int[]> sendcounts    = p.get_chunks_sizes();
+    std::unique_ptr<int[]> displacements = p.get_chunks_starts();
 
     MPI_Scatterv(
-        v, sendcounts, displacements, MPI_DOUBLE,
+        v, sendcounts.get(), displacements.get(), MPI_DOUBLE,
         v_local, p.get_chunk_size(), MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
     MPI_Scatterv(
-        w, sendcounts, displacements, MPI_DOUBLE,
+        w, sendcounts.get(), displacements.get(), MPI_DOUBLE,
         w_local, p.get_chunk_size(), MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
@@ -59,12 +59,10 @@ int main(int argc, char **argv) {
     
     MPI_Gatherv(
         r_local, p.get_chunk_size(), MPI_DOUBLE,
-        r, sendcounts, displacements, MPI_DOUBLE,
+        r, sendcounts.get(), displacements.get(), MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
-    
-    delete[] sendcounts;
-    delete[] displacements;
+
     delete[] v_local;
     delete[] w_local;
     delete[] r_local;

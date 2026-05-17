@@ -1,11 +1,15 @@
 #pragma once
 
+#include <iostream>
+#include <memory>
+
+
 class Partition 
 {
     private:
-        const int total_size;       // total size of the data
-        const int n_procs; // number of processes
-        const int rank;    // process id [0, n_procs-1]
+        const int total_size; // total size of the data
+        const int n_procs;    // number of processes
+        const int rank;       // process id [0, n_procs-1]
 
     public:
         Partition(int total_size, int n_procs, int rank) : total_size(total_size), n_procs(n_procs), rank(rank) {}
@@ -70,8 +74,8 @@ class Partition
             return total_size;
         }
 
-        int *get_chunks_sizes() const {
-            int *chunks_sizes = new int[n_procs];
+        std::unique_ptr<int[]> get_chunks_sizes() const {
+            std::unique_ptr<int[]> chunks_sizes = std::make_unique<int[]>(n_procs);
 
             for (int i = 0; i < n_procs; i++) {
                 chunks_sizes[i] = get_chunk_size(i);
@@ -80,8 +84,8 @@ class Partition
             return chunks_sizes;
         }
 
-        int *get_chunks_starts() const {
-            int *chunks_starts = new int[n_procs];
+        std::unique_ptr<int[]> get_chunks_starts() const {
+            std::unique_ptr<int[]> chunks_starts = std::make_unique<int[]>(n_procs);
 
             for (int i = 0; i < n_procs; i++) {
                 chunks_starts[i] = get_start(i);
@@ -89,4 +93,9 @@ class Partition
 
             return chunks_starts;
         }
+};
+
+class Partition2D
+{
+    // TODO: implement
 };

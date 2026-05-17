@@ -3,6 +3,10 @@
 #include "partition.h"
 #include <mpi.h>
 
+bool is_border() {
+    
+}
+
 int main(int argc, char **argv) {
     MPI_Init(&argc, &argv);
 
@@ -48,8 +52,8 @@ int main(int argc, char **argv) {
     }
 
     if (rank == 0) {
-        int *sendcounts    = p.get_chunks_sizes();
-        int *displacements = p.get_chunks_starts();
+        auto sendcounts    = p.get_chunks_sizes();
+        auto displacements = p.get_chunks_starts();
 
         for (int i = 1; i < size; i++) {
             int disp = displacements[i];
@@ -58,19 +62,22 @@ int main(int argc, char **argv) {
             }
         }
 
-        delete[] sendcounts;
-        delete[] displacements;
-    }
-
-    for (int i = 0; i < p.get_chunk_size() + 2; i++) {
-        MPI_Recv(T_prev[i + 1], n, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        for (int i = 0; i < sendcounts[0]; i++) {
+            for (int j = 0; j < n; j++) {
+                T_prev[i + 1][j] = T[i][j];
+            }
+        }
+    } else {
+        for (int i = 0; i < p.get_chunk_size(); i++) {
+            MPI_Recv(T_prev[i + 1], n, MPI_DOUBLE, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+        }
     }
 
     for (int niter = 0; niter < 1; niter++) {
         int up   = rank - 1;
         int down = rank + 1;
 
-        if (up < 1) {
+        if (up < 0) {
             up = MPI_PROC_NULL;
         }
 
@@ -111,15 +118,20 @@ int main(int argc, char **argv) {
                 T_prev[i][j] = T_next[i][j];
             }
         }
+    }
 
-        // if (rank == 0) {
-        //     for (int i = 0; i < p.get_chunk_size() + 2; i++) {
-        //         for (int j = 0; j < n; j++) {
-        //             std::cout << "[" << rank << "] " << T_prev[i + 1][j] << " ";
-        //         }
-        //         std::cout << std::endl;
-        //     }
-        // }
+    for (int r = 0; r < size; r++) {
+        if (r == rank) {
+            for (int i = 1; i < p.get_chunk_size() + 1; i++) {
+                for (int j = 0; j < n; j++) {
+                    std::cout << T_prev[i][j] << " ";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << std::endl;
+        }
+
+        MPI_Barrier(MPI_COMM_WORLD);
     }
 
     MPI_Finalize();
