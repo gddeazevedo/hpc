@@ -74,6 +74,9 @@ class Partition
             return total_size;
         }
 
+        /**
+         * Get the sizes of the partitions for all processes
+         */
         std::unique_ptr<int[]> get_chunks_sizes() const {
             std::unique_ptr<int[]> chunks_sizes = std::make_unique<int[]>(n_procs);
 
@@ -84,6 +87,9 @@ class Partition
             return chunks_sizes;
         }
 
+        /**
+         * Get the starting indices of the partitions for all processes
+         */
         std::unique_ptr<int[]> get_chunks_starts() const {
             std::unique_ptr<int[]> chunks_starts = std::make_unique<int[]>(n_procs);
 

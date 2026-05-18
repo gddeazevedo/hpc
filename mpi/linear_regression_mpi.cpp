@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
     double *x_local = new double[p.get_chunk_size()];
     double *y_local = new double[p.get_chunk_size()];
 
-    
     if (rank == 0) {
         x = new double[p.get_total_size()];
         y = new double[p.get_total_size()];
@@ -71,22 +70,20 @@ int main(int argc, char **argv) {
             y[i] = 2 * i;
         }
     }
-    
-    int *sendcounts    = p.get_chunks_sizes();
-    int *displacements = p.get_chunks_starts();
+
+    std::unique_ptr<int[]> sendcounts    = p.get_chunks_sizes();
+    std::unique_ptr<int[]> displacements = p.get_chunks_starts();
 
     MPI_Scatterv(
-        x, sendcounts, displacements, MPI_DOUBLE,
+        x, sendcounts.get(), displacements.get(), MPI_DOUBLE,
         x_local, p.get_chunk_size(), MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
     MPI_Scatterv(
-        y, sendcounts, displacements, MPI_DOUBLE,
+        y, sendcounts.get(), displacements.get(), MPI_DOUBLE,
         y_local, p.get_chunk_size(), MPI_DOUBLE,
         0, MPI_COMM_WORLD
     );
-    delete[] sendcounts;
-    delete[] displacements;
 
     double mean_x = Mean(x_local, p);
     double mean_y = Mean(y_local, p);
