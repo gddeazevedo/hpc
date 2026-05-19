@@ -12,7 +12,7 @@ double Mean(const double *x_local, const Partition &p) {
  
     double local_mean = sum / p.get_total_size();
     double mean = 0.0;
-    MPI_Allreduce(&local_mean, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD); // todos precisam ter a media para calcular
+    MPI_Allreduce(&local_mean, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD); // todos precisam ter a media para calcular a variancia e covariancia
 
     return mean;
 }
