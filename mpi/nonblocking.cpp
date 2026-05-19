@@ -51,6 +51,7 @@ int main(int argc, char **argv) {
         double t0 = MPI_Wtime();
         double timeout = 5.0;
 
+        // busy waiting
         while (!flag) {
             MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
 
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
 
             std::cout << "[" << rank << "] Waiting for message..." << std::endl;
 
-            usleep(100000); // Sleep for 100ms to avoid busy waiting
+            usleep(100000);
         }
 
         std::cout << "[" << rank << "] Received message: " << buffer << std::endl;
