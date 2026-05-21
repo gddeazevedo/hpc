@@ -3,7 +3,7 @@
 #include "partition.h"
 
 
-void vec_sum(double *r, const double *v, const double *w, const Partition &p) {
+void vec_sum(double *r, const double *v, const double *w, const partition::Partition1D &p) {
     for (int i = 0; i < p.get_chunk_size(); i++) {
         r[i] = v[i] + w[i];
     }
@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
 
     int n = 8;
 
-    Partition p(n, size, rank);
+    partition::Partition1D p(n, size, rank);
 
     double *v = nullptr;
     double *w = nullptr;

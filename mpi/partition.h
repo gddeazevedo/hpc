@@ -3,8 +3,12 @@
 #include <iostream>
 #include <memory>
 
+namespace partition {
 
-class Partition 
+/** 
+ * @brief A class to partition a 1D array among multiple processes.
+*/
+class Partition1D
 {
     private:
         const int total_size; // total size of the data
@@ -12,7 +16,7 @@ class Partition
         const int rank;       // process id [0, n_procs-1]
 
     public:
-        Partition(int total_size, int n_procs, int rank) : total_size(total_size), n_procs(n_procs), rank(rank) {}
+        Partition1D(int total_size, int n_procs, int rank) : total_size(total_size), n_procs(n_procs), rank(rank) {}
 
         /**
          * Get the starting index of the partition for the current process
@@ -103,5 +107,7 @@ class Partition
 
 class Partition2D
 {
-    // TODO: implement
+    // TODO: implement a class to partition a 2D array among multiple processes
 };
+
+} // namespace partition

@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     constexpr int n = 2;
-    Partition p(n, size, rank);
+    partition::Partition1D p(n, size, rank);
 
     double **T;
     double **T_prev;

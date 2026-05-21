@@ -3,7 +3,7 @@
 #include <cmath>
 #include "partition.h"
 
-double Mean(const double *x_local, const Partition &p) {
+double Mean(const double *x_local, const partition::Partition1D &p) {
     double sum = 0.0;
 
     for (int i = 0; i < p.get_chunk_size(); i++) {
@@ -17,7 +17,7 @@ double Mean(const double *x_local, const Partition &p) {
     return mean;
 }
 
-double Var(double *x_local, double mean, const Partition &p) {
+double Var(double *x_local, double mean, const partition::Partition1D &p) {
     double local_var = 0.0;
 
     for (int i = 0; i < p.get_chunk_size(); i++) {
@@ -31,7 +31,7 @@ double Var(double *x_local, double mean, const Partition &p) {
     return var;
 }
 
-double Cov(double *x_local, double mean_x, double *y_local, double mean_y, const Partition &p) {
+double Cov(double *x_local, double mean_x, double *y_local, double mean_y, const partition::Partition1D &p) {
     double local_covar = 0.0;
 
     for (int i = 0; i < p.get_chunk_size(); i++) {
@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    Partition p(n, size, rank);
+    partition::Partition1D p(n, size, rank);
 
     double *x = nullptr;
     double *y = nullptr;
