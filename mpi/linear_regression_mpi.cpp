@@ -21,7 +21,8 @@ double Var(double *x_local, double mean, const Partition &p) {
     double local_var = 0.0;
 
     for (int i = 0; i < p.get_chunk_size(); i++) {
-        local_var += (x_local[i] - mean) * (x_local[i] - mean);
+        double diff = x_local[i] - mean;
+        local_var += diff * diff;
     }
 
     double var = 0.0;
@@ -34,7 +35,9 @@ double Cov(double *x_local, double mean_x, double *y_local, double mean_y, const
     double local_covar = 0.0;
 
     for (int i = 0; i < p.get_chunk_size(); i++) {
-        local_covar += (x_local[i] - mean_x) * (y_local[i] - mean_y);
+        double diff_x = x_local[i] - mean_x;
+        double diff_y = y_local[i] - mean_y;
+        local_covar += diff_x * diff_y;
     }
 
     double covar = 0.0;
