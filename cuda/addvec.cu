@@ -1,5 +1,3 @@
-%%cuda
-
 #include <iostream>
 
 __global__ void VecAdd(double *a, double *b, double *c) {
