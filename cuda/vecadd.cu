@@ -1,47 +1,53 @@
-#include <iostream>
+#include <stdio.h>
+#include <stdlib.h>
 
-__global__ void VecAdd(double *a, double *b, double *c) {
-    int i = threadIdx.x;
-    c[i] = a[i] + b[i];
+__global__ void VecAdd(float *A, float *B, float *C, int n) {
+    int i = blockDim.x * blockIdx.x + threadIdx.x;
+    if (i < n) {
+        C[i] = A[i] + B[i];
+    }
 }
 
-
 int main() {
-    constexpr int N = 100;
-    double *a, *b, *c;
-    
-    a = new double[N];
-    b = new double[N];
-    c = new double[N];
+    constexpr int n = 100;
+    float *a = (float *) malloc(sizeof(float) * n);
+    float *b = (float *) malloc(sizeof(float) * n);
+    float *c = (float *) malloc(sizeof(float) * n);
 
-    for (int i = 0; i < N; ++i) {
-        a[i] = i;
-        b[i] = i;
+    for (int i = 0; i < n; i++) {
+        a[i] = i + 1;
+        b[i] = i + 1;
     }
 
-    double *d_a, *d_b, *d_c;
-    cudaMalloc(&d_a, N * sizeof(double));
-    cudaMalloc(&d_b, N * sizeof(double));
-    cudaMalloc(&d_c, N * sizeof(double));
+    float *d_a, *d_b, *d_c;
 
-    cudaMemcpy(d_a, a, N * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_b, b, N * sizeof(double), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_c, c, N * sizeof(double), cudaMemcpyHostToDevice);
+    cudaMalloc(&d_a, sizeof(float) * n);
+    cudaMalloc(&d_b, sizeof(float) * n);
+    cudaMalloc(&d_c, sizeof(float) * n);
 
-    delete[] a;
-    delete[] b;
+    cudaMemcpy(d_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
+    cudaMemcpy(d_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
 
-    VecAdd<<<1, N>>>(d_a, d_b, d_c);
-    cudaMemcpy(c, d_c, N * sizeof(double), cudaMemcpyDeviceToHost);
+    free(a);
+    free(b);
+
+    dim3 blocksPerGrid(1);
+    dim3 threadsPerBlock(n);
+
+    VecAdd<<<blocksPerGrid, threadsPerBlock>>>(d_a, d_b, d_c, n);
+    cudaMemcpy(c, d_c, n * sizeof(float), cudaMemcpyDeviceToHost);
 
     cudaFree(d_a);
     cudaFree(d_b);
     cudaFree(d_c);
 
-    for (int i = 0; i < N; ++i) {
-        std::cout << c[i] << " ";
+    for (int i = 0; i < n; i++) {
+        printf("%.2f ", c[i]);
     }
-    std::cout << std::endl;
-    delete[] c;
+
+    printf("\n");
+    free(c);
+
     return 0;
 }
