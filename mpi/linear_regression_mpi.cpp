@@ -9,7 +9,7 @@ double Mean(const double *x_local, const partition::Partition1D &p) {
     for (int i = 0; i < p.get_chunk_size(); i++) {
         sum += x_local[i];
     }
- 
+
     double local_mean = sum / p.get_total_size();
     double mean = 0.0;
     MPI_Allreduce(&local_mean, &mean, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD); // todos precisam ter a media para calcular a variancia e covariancia
@@ -88,6 +88,11 @@ int main(int argc, char **argv) {
         0, MPI_COMM_WORLD
     );
 
+    if (rank == 0) {
+        delete[] x;
+        delete[] y;
+    }
+
     double mean_x = Mean(x_local, p);
     double mean_y = Mean(y_local, p);
 
@@ -100,16 +105,13 @@ int main(int argc, char **argv) {
     delete[] y_local;
 
     if (rank == 0) {
-        delete[] x;
-        delete[] y;
-
         double beta  = cov_xy / var_x;
         double alpha = mean_y - beta * mean_x;
         double rho   = cov_xy / (sqrt(var_x) * sqrt(var_y));
 
         std::cout << "alpha: " << alpha << std::endl;
-        std::cout << "beta: " << beta << std::endl;
-        std::cout << "rho: " << rho << std::endl;
+        std::cout << "beta:  " << beta  << std::endl;
+        std::cout << "rho:   " << rho   << std::endl;
     }
 
     MPI_Finalize();
