@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#define ROOT_RANK 0
 #define CHUNK    1000
 #define TAG_REQ  1
 #define TAG_RES  2
@@ -98,7 +99,7 @@ int main(int argc, char **argv) {
 
     int n = atoi(argv[1]);
 
-    if (rank == 0) {
+    if (rank == ROOT_RANK) {
         master(n, size);
     } else {
         worker(n);
