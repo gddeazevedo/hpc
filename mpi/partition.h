@@ -18,41 +18,51 @@ class Partition1D
     public:
         Partition1D(const int total_size, const int n_procs, const int rank) : total_size(total_size), n_procs(n_procs), rank(rank) {}
 
+        int get_total_size() const {
+            return this->total_size;
+        }
+
+        int get_n_procs() const {
+            return this->n_procs;
+        }
+
+        int get_rank() const {
+            return this->rank;
+        }
+
         /**
          * Get the starting index of the partition for the current process
          */
         int get_start() const {
             int n_procs_unb = this->total_size % this->n_procs; // number of processes that get an extra element
+            int chunk_unb   = this->total_size / this->n_procs + 1;
 
             if (this->rank < n_procs_unb) {
-                int chunk = this->total_size / this->n_procs + 1;
-                return this->rank * chunk;
+                return this->rank * chunk_unb;
             }
 
-            int chunk_unb   = this->total_size / this->n_procs + 1;
-            int chunk       = this->total_size / this->n_procs; // chunk size for processes that do not get an extra element
+            int chunk = this->total_size / this->n_procs; // chunk size for processes that do not get an extra element
 
-            int n_procs_balanced = this->rank - n_procs_unb;
-            int unbalanced_offet = n_procs_unb * chunk_unb;
+            int balanced_proc_offset = this->rank - n_procs_unb;
+            int unbalanced_offet     = n_procs_unb * chunk_unb;
 
-            return unbalanced_offet + n_procs_balanced * chunk;
+            return unbalanced_offet + balanced_proc_offset * chunk;
         }
 
         int get_start(const int proc) const {
             int n_procs_unb = this->total_size % this->n_procs; // number of processes that get an extra element
+            int chunk_unb   = this->total_size / this->n_procs + 1;
 
             if (proc < n_procs_unb) {
-                int chunk = this->total_size / this->n_procs + 1;
-                return proc * chunk;
+                return proc * chunk_unb;
             }
 
-            int chunk_unb   = this->total_size / this->n_procs + 1;
-            int chunk       = this->total_size / this->n_procs; // chunk size for processes that do not get an extra element
+            int chunk = this->total_size / this->n_procs; // chunk size for processes that do not get an extra element
 
-            int n_procs_balanced = proc - n_procs_unb;
-            int unbalanced_offet = n_procs_unb * chunk_unb;
+            int balanced_proc_offset = proc - n_procs_unb;
+            int unbalanced_offet     = n_procs_unb * chunk_unb;
 
-            return unbalanced_offet + n_procs_balanced * chunk;
+            return unbalanced_offet + balanced_proc_offset * chunk;
         }
 
         /**
@@ -84,18 +94,14 @@ class Partition1D
             return this->total_size / this->n_procs;
         }
 
-        int get_total_size() const {
-            return this->total_size;
-        }
-
         /**
          * Get the sizes of the partitions for all processes
          */
         std::unique_ptr<int[]> get_chunks_sizes() const {
             std::unique_ptr<int[]> chunks_sizes = std::make_unique<int[]>(this->n_procs);
 
-            for (int i = 0; i < this->n_procs; i++) {
-                chunks_sizes[i] = this->get_chunk_size(i);
+            for (int proc = 0; proc < this->n_procs; proc++) {
+                chunks_sizes[proc] = this->get_chunk_size(proc);
             }
 
             return chunks_sizes;
@@ -107,8 +113,8 @@ class Partition1D
         std::unique_ptr<int[]> get_chunks_starts() const {
             std::unique_ptr<int[]> chunks_starts = std::make_unique<int[]>(this->n_procs);
 
-            for (int i = 0; i < this->n_procs; i++) {
-                chunks_starts[i] = this->get_start(i);
+            for (int proc = 0; proc < this->n_procs; proc++) {
+                chunks_starts[proc] = this->get_start(proc);
             }
 
             return chunks_starts;
