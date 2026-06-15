@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 
             std::cout << "[" << rank << "] Waiting for message..." << std::endl;
 
-            usleep(100000);
+            usleep(1000);
         }
 
         std::cout << "[" << rank << "] Received message: " << buffer << std::endl;
