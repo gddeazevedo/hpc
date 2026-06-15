@@ -24,7 +24,7 @@ void master(long n, int size) {
     long prox_num = 2;
     int active_workers = size - 1;
 
-    long total_primes = 0;
+    int total_primes = 0;
 
     while (active_workers > 0) {
         MPI_Status status;
@@ -63,7 +63,7 @@ void master(long n, int size) {
     printf("Total primes: %ld\n", total_primes);
 }
 
-void worker(int n) {
+void worker(long n) {
     long prox_num = 0;
     char buffer;
 
@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &size);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    int n = atoi(argv[1]);
+    long n = atoi(argv[1]);
 
     if (rank == ROOT_RANK) {
         master(n, size);
