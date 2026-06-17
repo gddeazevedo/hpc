@@ -27,7 +27,6 @@ int main() {
 
     cudaMemcpy(d_a, a, n * sizeof(float), cudaMemcpyHostToDevice);
     cudaMemcpy(d_b, b, n * sizeof(float), cudaMemcpyHostToDevice);
-    cudaMemcpy(d_c, c, n * sizeof(float), cudaMemcpyHostToDevice);
 
     free(a);
     free(b);

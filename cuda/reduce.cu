@@ -1,56 +1,75 @@
-#include <iostream>
+#include <cstdlib>
+#include <cstdio>
 
-__global__ void reduce_vector(double *vec, double *output) {
-    extern __shared__ double partial_sum[];
+__global__ void reduce(const int *v, int *out, const int n) {
+    extern __shared__ int block_sum[];
 
-    int global_id  = blockIdx.x * blockDim.x + threadIdx.x;
-    int local_id   = threadIdx.x;
+    const int lid       = threadIdx.x;
+    const int n_threads = blockDim.x;
+    const int gid       = n_threads * blockIdx.x + lid;
 
-    partial_sum[local_id] = vec[global_id];
+    block_sum[lid] = gid < n ? v[gid] : 0;
     __syncthreads();
 
-    for (int i = blockDim.x / 2; i > 0; i /= 2) {
-        if (local_id < i) {
-            partial_sum[local_id] += partial_sum[local_id + i];
+    for (int i = n_threads / 2; i > 0; i /= 2) {
+        if (lid < i) {
+            block_sum[lid] += block_sum[lid + i];
         }
+
         __syncthreads();
     }
 
-    if (local_id == 0) {
-        output[blockIdx.x] = partial_sum[0];
+
+    if (lid == 0) {
+        out[blockIdx.x] = block_sum[0];
     }
 }
 
-int main() {
-    constexpr int n = 10;
-    constexpr int threads_per_block = 2;
-    constexpr int blocks = n / threads_per_block;
+__host__ int ceil_div(int n, int m) {
+    return (n + m - 1) / m;
+}
 
-    double *vec = new double[n];
+int main(int argc, char **argv) {
+    const int n = atoi(argv[1]);
+
+    const int vec_bytes = sizeof(int) * n;
+
+    int *v = (int *) malloc(vec_bytes);
+
     for (int i = 0; i < n; i++) {
-        vec[i] = i + 1;
+        v[i] = i + 1;
     }
 
-    double *d_vec, *d_output;
-    cudaMalloc(&d_vec, sizeof(double) * n);
-    cudaMemcpy(d_vec, vec, sizeof(double) * n, cudaMemcpyHostToDevice);
-    delete[] vec;
+    dim3 threads_per_block(16);
+    dim3 blocks_per_grid(ceil_div(n, threads_per_block.x));
 
-    cudaMalloc(&d_output, sizeof(double) * blocks);
+    int *d_v;
+    cudaMalloc(&d_v, vec_bytes);
+    cudaMemcpy(d_v, v, vec_bytes, cudaMemcpyHostToDevice);
+    free(v);
 
-    reduce_vector<<<blocks, threads_per_block, sizeof(double) * threads_per_block>>>(d_vec, d_output);
+    const int shared_size = threads_per_block.x * sizeof(int);
+    const int out_size    = blocks_per_grid.x   * sizeof(int);
+    int *d_out;
+    cudaMalloc(&d_out, out_size);
 
-    double *output = new double[blocks];
-    cudaMemcpy(output, d_output, sizeof(double) * blocks, cudaMemcpyDeviceToHost);
+    reduce<<<blocks_per_grid, threads_per_block, shared_size>>>(d_v, d_out, n);
+    
+    cudaFree(d_v);
+    
+    int *out = (int *) malloc(out_size);
+    cudaMemcpy(out, d_out, out_size, cudaMemcpyDeviceToHost);
+    cudaFree(d_out);
 
-    for (int i = 0; i < blocks; i++) {
-        std::cout << output[i] << " ";
+    int sum = 0.0;
+
+    for (int i = 0; i < blocks_per_grid.x; i++) {
+        sum += out[i];
     }
-    std::cout << std::endl;
 
-    delete[] output;
-    cudaFree(d_vec);
-    cudaFree(d_output);
+    free(out);
+
+    printf("Sum: %d\n", sum);
 
     return 0;
 }
